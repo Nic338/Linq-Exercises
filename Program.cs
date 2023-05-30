@@ -5,11 +5,28 @@ public class Program
 {
         public class Customer
     {
-        public string Name { get; set; }
+        public string? Name { get; set; }
         public double Balance { get; set; }
-        public string Bank { get; set; }
+        public string? Bank { get; set; }
     }
 
+        public class Bank
+    {
+        public string? Symbol { get; set; }
+        public string? Name { get; set; }
+    }
+
+    public class ReportItem
+    {
+        public string? CustomerName { get; set; }
+        public Bank? Bank { get; set; }
+        public string[]? SplitName { get; set; }
+    }
+    public class BankEntry
+    {
+        public string? BankName { get; set; }
+        public int MillionaireCount { get; set; }
+    }
 
     public static void Main()
     {
@@ -137,10 +154,47 @@ public class Program
         
         var Millionaires = customers.Where(customer => customer.Balance > 999999.99);
 
-       foreach (var millionaire in Millionaires){
-        Console.WriteLine($"{millionaire.Name}");
-        Console.WriteLine($"{millionaire.Balance}");
-        Console.WriteLine($"{millionaire.Bank}");
-       }
+    //    foreach (var millionaire in Millionaires){
+    //     Console.WriteLine($"{millionaire.Name}");
+    //     Console.WriteLine($"{millionaire.Balance}");
+    //     Console.WriteLine($"{millionaire.Bank}");
+    //    }
+
+        var MillionairesPerBank = customers.Where(customer => customer.Balance > 999999.99)
+        .GroupBy(customer => customer.Bank)
+        .Select(group => new 
+        {
+            Bank = group.Key,
+            Count = group.Count()   
+        });
+
+        foreach (var MillionairePerBank in MillionairesPerBank)
+        {
+            Console.WriteLine($"{MillionairePerBank.Bank} {MillionairePerBank.Count}");
+        }
+
+        List<Bank> banks = new List<Bank>() {
+            new Bank(){ Name="First Tennessee", Symbol="FTB"},
+            new Bank(){ Name="Wells Fargo", Symbol="WF"},
+            new Bank(){ Name="Bank of America", Symbol="BOA"},
+            new Bank(){ Name="Citibank", Symbol="CITI"},
+        };
+
+        List<ReportItem> millionaireReports = (from customer in customers
+
+        where customer.Balance > 999999.99
+
+        select new ReportItem {
+            CustomerName = customer.Name,
+            Bank = banks.First(bank => bank.Symbol == customer.Bank),
+            SplitName = customer.Name.Split(' ')
+        }
+
+        ).OrderBy(customer => customer.SplitName[1]).ToList();
+
+        foreach(var millionaire in millionaireReports)
+        {
+            Console.WriteLine($"{millionaire.CustomerName} at {millionaire.Bank.Name}");
+        }
 }
 }
